@@ -1,91 +1,287 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Countdown Timer</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fff8f0;
-      color: #e94e77;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+import React, { useState, useEffect, useRef } from "react";
+
+const MAX_MINUTES = 60;
+
+export default function CuteWheelTimer() {
+  const [minutes, setMinutes] = useState(1);
+  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [isRunning, setIsRunning] = useState(false);
+  const dialRef = useRef(null);
+
+  useEffect(() => {
+    if (!isRunning) setSecondsLeft(minutes * 60);
+  }, [minutes, isRunning]);
+
+  useEffect(() => {
+    if (isRunning && secondsLeft > 0) {
+      const interval = setInterval(() => setSecondsLeft((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    } else if (secondsLeft === 0) {
+      setIsRunning(false);
     }
+  }, [isRunning, secondsLeft]);
 
-    #timer {
-      font-size: 4rem;
-      margin: 20px 0;
-    }
+  const angle = (minutes / MAX_MINUTES) * 360;
 
-    .buttons {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  }
 
-    button {
-      background: #e94e77;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+  function handlePointer(event) {
+    const rect = dialRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
 
-    button:hover {
-      background: #d83b66;
-    }
-  </style>
-</head>
-<body>
-  <h2>Choose a Timer</h2>
-  <div class="buttons">
-    <button onclick="startTimer(5)">5 Min</button>
-    <button onclick="startTimer(10)">10 Min</button>
-    <button onclick="startTimer(15)">15 Min</button>
-  </div>
+    const x = event.clientX - centerX;
+    const y = event.clientY - centerY;
 
-  <div id="timer">00:00</div>
-  <button onclick="resetTimer()">Reset</button>
+    let rad = Math.atan2(y, x);
+    let deg = (rad * 180) / Math.PI;
 
-  <script>
-    let countdown;
-    let remainingTime = 0;
+    deg += 90;
+    if (deg < 0) deg += 360;
 
-    function startTimer(minutes) {
-      clearInterval(countdown);
-      remainingTime = minutes * 60;
-      updateDisplay();
+    let selectedMinutes = Math.round((deg / 360) * MAX_MINUTES);
+    if (selectedMinutes === 0) selectedMinutes = 1;
 
-      countdown = setInterval(() => {
-        remainingTime--;
-        if (remainingTime <= 0) {
-          clearInterval(countdown);
-          document.getElementById("timer").innerText = "00:00";
-          alert("Time's up! ✨");
-        } else {
-          updateDisplay();
+    setMinutes(selectedMinutes);
+  }
+
+  return (
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap"
+        rel="stylesheet"
+      />
+      <style>{`
+        * {
+          box-sizing: border-box;
         }
-      }, 1000);
-    }
+        body {
+          font-family: 'Fredoka One', cursive, sans-serif;
+          background: linear-gradient(135deg, #d6f0e1, #ffd1dc);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+        .timer-container {
+          background: #fff;
+          border-radius: 30px;
+          padding: 30px 40px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          width: 360px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+          user-select: none;
+        }
+        .timer-display {
+          font-size: 4rem;
+          color: #2d7a34;
+          font-weight: 700;
+          letter-spacing: 5px;
+          margin-bottom: 20px;
+          text-shadow: 1px 1px 1px #ffa5c0;
+          user-select: text;
+        }
+        .dial {
+          width: 260px;
+          height: 260px;
+          border-radius: 50%;
+          background: #ff9bb4;
+          margin: 0 auto 35px auto;
+          position: relative;
+          box-shadow: inset 0 0 25px #ff6f8e;
+          cursor: pointer;
+          touch-action: none;
+        }
+        .marker {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 16px;
+          height: 16px;
+          background: #2d7a34;
+          border-radius: 50%;
+          transform-origin: 50% 120px;
+          box-shadow: 0 0 10px #2d7a34;
+          transition: transform 0.15s ease;
+          transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-120px);
+        }
+        .minute-mark {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 6px;
+          height: 12px;
+          background: #2d7a34;
+          border-radius: 3px;
+          transform-origin: 50% 110px;
+          opacity: 0.3;
+        }
+        .minute-number {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          color: #2d7a34;
+          font-size: 10px;
+          font-weight: 700;
+          user-select: none;
+        }
+        .control-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+        }
+        button.control-btn {
+          background: #2d7a34;
+          color: #fff;
+          border: none;
+          padding: 14px 32px;
+          border-radius: 30px;
+          font-weight: 700;
+          font-size: 1.2rem;
+          cursor: pointer;
+          box-shadow: 0 5px 15px rgba(45, 122, 52, 0.8);
+          user-select: none;
+          transition: background-color 0.3s ease;
+        }
+        button.control-btn:disabled {
+          opacity: 0.5;
+          cursor: default;
+        }
+        button.control-btn:hover:enabled {
+          background: #1f4d23;
+        }
+        /* Decorative leaves */
+        .leaf {
+          position: absolute;
+          width: 60px;
+          height: 60px;
+          background: #2d7a34;
+          border-radius: 50% 50% 0 50% / 60% 60% 40% 40%;
+          box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+          opacity: 0.7;
+          pointer-events: none;
+        }
+        .leaf::after {
+          content: "";
+          position: absolute;
+          top: 15px;
+          left: 10px;
+          width: 3px;
+          height: 35px;
+          background: #95d18c;
+          border-radius: 3px;
+          transform: rotate(20deg);
+        }
+        .leaf.top-left {
+          top: -20px;
+          left: -20px;
+          transform: rotate(-20deg);
+        }
+        .leaf.bottom-right {
+          bottom: -20px;
+          right: -20px;
+          transform: rotate(30deg);
+        }
+      `}</style>
 
-    function updateDisplay() {
-      const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
-      const seconds = (remainingTime % 60).toString().padStart(2, '0');
-      document.getElementById("timer").innerText = `${minutes}:${seconds}`;
-    }
+      <div className="timer-container" role="main" aria-label="Cute timer with a dial selector">
+        <div className="leaf top-left" aria-hidden="true"></div>
+        <div className="leaf bottom-right" aria-hidden="true"></div>
 
-    function resetTimer() {
-      clearInterval(countdown);
-      document.getElementById("timer").innerText = "00:00";
-    }
-  </script>
-</body>
-</html>
+        <div
+          className="dial"
+          ref={dialRef}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            handlePointer(e);
+            window.addEventListener("pointermove", handlePointer);
+            window.addEventListener(
+              "pointerup",
+              () => window.removeEventListener("pointermove", handlePointer),
+              { once: true }
+            );
+          }}
+          role="slider"
+          aria-valuemin={1}
+          aria-valuemax={MAX_MINUTES}
+          aria-valuenow={minutes}
+          aria-label="Select minutes"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp" || e.key === "ArrowRight") {
+              setMinutes((m) => Math.min(MAX_MINUTES, m + 1));
+            } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
+              setMinutes((m) => Math.max(1, m - 1));
+            }
+          }}
+        >
+          {/* Minute marks and numbers */}
+          {[...Array(MAX_MINUTES).keys()].map((i) => {
+            const deg = (360 / MAX_MINUTES) * i;
+            const isMajor = i % 5 === 0;
+            const markHeight = isMajor ? 14 : 7;
+            return (
+              <div
+                key={i}
+                className="minute-mark"
+                style={{
+                  height: `${markHeight}px`,
+                  opacity: isMajor ? 0.7 : 0.3,
+                  transform: `translate(-50%, -50%) rotate(${deg}deg) translateY(-110px)`,
+                }}
+              >
+                {isMajor && (
+                  <div
+                    className="minute-number"
+                    style={{
+                      top: "-24px",
+                      left: "50%",
+                      transform: `translateX(-50%) rotate(${-deg}deg)`,
+                    }}
+                  >
+                    {i === 0 ? "60" : i}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Rotating marker */}
+          <div className="marker" style={{ "--angle": `${angle}deg` }} />
+        </div>
+
+        <div className="timer-display" aria-live="polite" aria-atomic="true">
+          {formatTime(secondsLeft)}
+        </div>
+
+        <div className="control-buttons">
+          <button
+            className="control-btn"
+            onClick={() => setIsRunning((r) => !r)}
+            disabled={secondsLeft === 0}
+            aria-label={isRunning ? "Pause timer" : "Start timer"}
+          >
+            {isRunning ? "Pause" : "Start"}
+          </button>
+          <button
+            className="control-btn"
+            onClick={() => {
+              setIsRunning(false);
+              setSecondsLeft(minutes * 60);
+            }}
+            aria-label="Reset timer"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
