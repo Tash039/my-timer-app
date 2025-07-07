@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stopwatch Timer</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #fff8f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    color: #e94e77;
+  }
+  #timer {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    letter-spacing: 3px;
+  }
+  button {
+    background: #e94e77;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    margin: 5px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #d83b66;
+  }
+</style>
+</head>
+<body>
+  <div id="timer">00:00:00</div>
+  <div>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+<script>
+  let startTime = 0;
+  let elapsedTime = 0;
+  let timerInterval;
+
+  function timeToString(time) {
+    let diffInHrs = time / 3600000;
+    let hh = Math.floor(diffInHrs);
+
+    let diffInMin = (diffInHrs - hh) * 60;
+    let mm = Math.floor(diffInMin);
+
+    let diffInSec = (diffInMin - mm) * 60;
+    let ss = Math.floor(diffInSec);
+
+    let formattedHH = hh.toString().padStart(2, "0");
+    let formattedMM = mm.toString().padStart(2, "0");
+    let formattedSS = ss.toString().padStart(2, "0");
+
+    return `${formattedHH}:${formattedMM}:${formattedSS}`;
+  }
+
+  function print(txt) {
+    document.getElementById("timer").innerHTML = txt;
+  }
+
+  function start() {
+    startTime = Date.now() - elapsedTime;
+    timerInterval = setInterval(function printTime() {
+      elapsedTime = Date.now() - startTime;
+      print(timeToString(elapsedTime));
+    }, 1000);
+    showButton("STOP");
+  }
+
+  function stop() {
+    clearInterval(timerInterval);
+    showButton("START");
+  }
+
+  function reset() {
+    clearInterval(timerInterval);
+    print("00:00:00");
+    elapsedTime = 0;
+    showButton("START");
+  }
+
+  function showButton(buttonKey) {
+    if (buttonKey === "START") {
+      document.getElementById("startBtn").style.display = "inline-block";
+      document.getElementById("stopBtn").style.display = "none";
+    } else {
+      document.getElementById("startBtn").style.display = "none";
+      document.getElementById("stopBtn").style.display = "inline-block";
+    }
+  }
+
+  document.getElementById("startBtn").addEventListener("click", start);
+  document.getElementById("stopBtn").addEventListener("click", stop);
+  document.getElementById("resetBtn").addEventListener("click", reset);
+
+  // initialize buttons
+  showButton("START");
+</script>
+</body>
+</html>
