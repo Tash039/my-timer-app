@@ -1,113 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Stopwatch Timer</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #fff8f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-    color: #e94e77;
-  }
-  #timer {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    letter-spacing: 3px;
-  }
-  button {
-    background: #e94e77;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    margin: 5px;
-    border-radius: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  button:hover {
-    background: #d83b66;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Countdown Timer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff8f0;
+      color: #e94e77;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #timer {
+      font-size: 4rem;
+      margin: 20px 0;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background: #e94e77;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #d83b66;
+    }
+  </style>
 </head>
 <body>
-  <div id="timer">00:00:00</div>
-  <div>
-    <button id="startBtn">Start</button>
-    <button id="stopBtn">Stop</button>
-    <button id="resetBtn">Reset</button>
+  <h2>Choose a Timer</h2>
+  <div class="buttons">
+    <button onclick="startTimer(5)">5 Min</button>
+    <button onclick="startTimer(10)">10 Min</button>
+    <button onclick="startTimer(15)">15 Min</button>
   </div>
 
-<script>
-  let startTime = 0;
-  let elapsedTime = 0;
-  let timerInterval;
+  <div id="timer">00:00</div>
+  <button onclick="resetTimer()">Reset</button>
 
-  function timeToString(time) {
-    let diffInHrs = time / 3600000;
-    let hh = Math.floor(diffInHrs);
+  <script>
+    let countdown;
+    let remainingTime = 0;
 
-    let diffInMin = (diffInHrs - hh) * 60;
-    let mm = Math.floor(diffInMin);
+    function startTimer(minutes) {
+      clearInterval(countdown);
+      remainingTime = minutes * 60;
+      updateDisplay();
 
-    let diffInSec = (diffInMin - mm) * 60;
-    let ss = Math.floor(diffInSec);
-
-    let formattedHH = hh.toString().padStart(2, "0");
-    let formattedMM = mm.toString().padStart(2, "0");
-    let formattedSS = ss.toString().padStart(2, "0");
-
-    return `${formattedHH}:${formattedMM}:${formattedSS}`;
-  }
-
-  function print(txt) {
-    document.getElementById("timer").innerHTML = txt;
-  }
-
-  function start() {
-    startTime = Date.now() - elapsedTime;
-    timerInterval = setInterval(function printTime() {
-      elapsedTime = Date.now() - startTime;
-      print(timeToString(elapsedTime));
-    }, 1000);
-    showButton("STOP");
-  }
-
-  function stop() {
-    clearInterval(timerInterval);
-    showButton("START");
-  }
-
-  function reset() {
-    clearInterval(timerInterval);
-    print("00:00:00");
-    elapsedTime = 0;
-    showButton("START");
-  }
-
-  function showButton(buttonKey) {
-    if (buttonKey === "START") {
-      document.getElementById("startBtn").style.display = "inline-block";
-      document.getElementById("stopBtn").style.display = "none";
-    } else {
-      document.getElementById("startBtn").style.display = "none";
-      document.getElementById("stopBtn").style.display = "inline-block";
+      countdown = setInterval(() => {
+        remainingTime--;
+        if (remainingTime <= 0) {
+          clearInterval(countdown);
+          document.getElementById("timer").innerText = "00:00";
+          alert("Time's up! ✨");
+        } else {
+          updateDisplay();
+        }
+      }, 1000);
     }
-  }
 
-  document.getElementById("startBtn").addEventListener("click", start);
-  document.getElementById("stopBtn").addEventListener("click", stop);
-  document.getElementById("resetBtn").addEventListener("click", reset);
+    function updateDisplay() {
+      const minutes = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+      const seconds = (remainingTime % 60).toString().padStart(2, '0');
+      document.getElementById("timer").innerText = `${minutes}:${seconds}`;
+    }
 
-  // initialize buttons
-  showButton("START");
-</script>
+    function resetTimer() {
+      clearInterval(countdown);
+      document.getElementById("timer").innerText = "00:00";
+    }
+  </script>
 </body>
 </html>
